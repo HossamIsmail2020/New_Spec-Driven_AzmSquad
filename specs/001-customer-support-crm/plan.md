@@ -131,6 +131,35 @@ needs to actually display *why* a request failed, not just that it did.
   HTTP as a documented, repeatable substitute — decided here, not
   improvised after hitting the problem again.
 
+  **Amendment #1, recorded live during Phase 2 (T008)**: the same block now
+  also hit `Application.Tests` — a pure unit-test project with no ASP.NET
+  Core, no database. Confirmed via `Microsoft-Windows-CodeIntegrity/Operational`
+  event 3077, same Policy ID (`{0283ac0f-fff1-49ae-ada1-8a933130cad6}`), now
+  naming `CustomerSupportCRM.Domain.dll`. First hypothesis (wrong, corrected
+  below): assumed a bespoke console app run via `dotnet run` would sidestep
+  it, since that path ran the previous project's API and Blazor client all
+  session without issue.
+
+  **Amendment #2, recorded minutes later**: that hypothesis was tested and
+  falsified. A new `dotnet new console` project referencing `Domain` hit the
+  *identical* `FileLoadException` on `dotnet run` — including after a full
+  clean rebuild, ruling out "stale evaluation" as the cause. But running the
+  actual `CustomerSupportCRM.Api` project (`dotnet run`, ASP.NET Core
+  hosting model) loaded the same `Domain.dll` with no issue at all. So the
+  block is not "testhost.exe" nor "any unsigned dll" — it is specifically
+  **generic console-app process hosts** (a rare, unrecognized process shape
+  to Smart App Control's reputation system) and **testhost.exe** (a known
+  strict-policy target), while the common ASP.NET Core hosting pattern is
+  evidently trusted. Conclusion, replacing the withdrawn console-app plan:
+  verification on this machine runs through the real API process (the one
+  confirmed-reliable path), via `scripts/smoke-test.sh` over HTTP — covering
+  the ticket-transition, assignment, and validation rules *indirectly* but
+  concretely (an invalid transition returns 409, a forbidden assignment
+  returns 403, invalid input returns 400) rather than via a standalone unit
+  test binary. The xUnit test projects are kept as-is — correct, and the
+  source of truth for CI/any machine without this constraint — just not
+  counted on for a live run on this machine.
+
 ## 7. Explicit non-goals (repeating spec §2 so `tasks.md` can't silently drift)
 
 No pagination/sorting/filtering UI beyond what's needed to demonstrate the
