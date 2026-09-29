@@ -1,5 +1,8 @@
+using CustomerSupportCRM.Application.Auth;
+using CustomerSupportCRM.Infrastructure.Auth;
 using CustomerSupportCRM.Infrastructure.Identity;
 using CustomerSupportCRM.Infrastructure.Persistence;
+using CustomerSupportCRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -28,6 +31,10 @@ public static class DependencyInjection
             })
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<AppDbContext>();
+
+        services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
+        services.AddSingleton<JwtTokenGenerator>();
+        services.AddScoped<IAuthService, AuthService>();
 
         return services;
     }
