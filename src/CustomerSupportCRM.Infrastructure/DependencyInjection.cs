@@ -1,5 +1,6 @@
 using CustomerSupportCRM.Application.Auth;
 using CustomerSupportCRM.Application.Customers;
+using CustomerSupportCRM.Application.Tickets;
 using CustomerSupportCRM.Infrastructure.Auth;
 using CustomerSupportCRM.Infrastructure.Identity;
 using CustomerSupportCRM.Infrastructure.Persistence;
@@ -37,6 +38,7 @@ public static class DependencyInjection
         services.AddSingleton<JwtTokenGenerator>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ICustomerService, CustomerService>();
+        services.AddScoped<ITicketService, TicketService>();
 
         return services;
     }
